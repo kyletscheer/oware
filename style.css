@@ -1,0 +1,26 @@
+#game-board {
+    border-collapse: collapse;
+    width: 420px;
+    margin: 20px auto;
+}
+
+.hollow {
+    width: 60px;
+    height: 60px;
+    border: 1px solid #000;
+    text-align: center;
+    line-height: 60px;
+    cursor: pointer;
+}
+
+.player-1 {
+    background-color: #aaffaa;
+}
+
+.player-2 {
+    background-color: #ffaaaa;
+}
+
+.owned {
+    font-weight: bold;
+}

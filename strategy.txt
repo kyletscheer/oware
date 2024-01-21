@@ -1,0 +1,69 @@
+Creating an optimal strategy for the game involves considering various factors, such as the current state of the board and potential future moves. Below is a simplified approach that provides a basic hint for the player to make a better move. The strategy is based on the following considerations:
+
+1. **Capture Opportunity:** If there's an opportunity to capture seeds in the current move, prioritize that move.
+
+2. **Avoiding Opponent's Capture:** Try to avoid making moves that allow the opponent to capture seeds.
+
+3. **Maximizing Future Captures:** If there are multiple moves with the potential to capture seeds, prioritize the one that leads to more future captures.
+
+Here's a simple JavaScript function that represents this basic strategy:
+
+```javascript
+function getBestMove(board, currentPlayer) {
+    let bestMove = null;
+    let maxFutureCaptures = 0;
+
+    for (let i = 0; i < board.length; i++) {
+        if (board[i].owner === currentPlayer && board[i].seeds > 0) {
+            const futureBoard = simulateMove(board, i);
+            const futureCaptures = countFutureCaptures(futureBoard, currentPlayer);
+            
+            if (futureCaptures > maxFutureCaptures) {
+                maxFutureCaptures = futureCaptures;
+                bestMove = i;
+            }
+        }
+    }
+
+    return bestMove;
+}
+
+function simulateMove(board, startIndex) {
+    const simulatedBoard = JSON.parse(JSON.stringify(board));
+    let seeds = simulatedBoard[startIndex].seeds;
+    simulatedBoard[startIndex].seeds = 0;
+
+    let currentIndex = startIndex;
+    while (seeds > 0) {
+        currentIndex = (currentIndex - 1 + 14) % 14;
+        simulatedBoard[currentIndex].seeds += 1;
+        seeds -= 1;
+    }
+
+    return simulatedBoard;
+}
+
+function countFutureCaptures(board, currentPlayer) {
+    let futureCaptures = 0;
+
+    for (let i = 0; i < board.length; i++) {
+        if (board[i].owner === currentPlayer && board[i].seeds === 4) {
+            futureCaptures += 1;
+        }
+    }
+
+    return futureCaptures;
+}
+```
+
+Explanation:
+
+- The `getBestMove` function iterates over the player's hollows, simulates each possible move, and calculates the potential future captures.
+
+- The `simulateMove` function creates a copy of the board, simulates the move, and returns the resulting board.
+
+- The `countFutureCaptures` function calculates the number of potential future captures on the simulated board.
+
+You can use this function to provide a hint to the player about the best move. For example, if `bestMove` is not `null`, you can highlight or display the corresponding hollow to indicate the recommended move.
+
+Please note that this is a basic strategy, and for a more sophisticated approach, you may consider implementing more advanced algorithms like minimax with alpha-beta pruning, especially if you want to create a strong AI opponent.

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      table {
+        /* border-collapse: collapse; */
+        border: 1px solid #000;
+        /* padding: 31px; */
+        border-radius: 20px;
+        width: 300px;
+        margin: 38px auto;
+        background-image: url("board_background.jpeg");
+      }
+      .thick-border {
+        border: 4px solid black; /* Adjust thickness and color as needed */
+      }
+      td {
+        /* border: 1px solid #000; */
+        border-collapse: revert;
+        border-radius: 50px; /* Adjust the radius as needed */
+        width: 40px;
+        height: 40px;
+        margin: 30px;
+        /* padding: 0px; */
+        text-align: center;
+        vertical-align: middle;
+        font-weight: bold;
+        font-size: 33px;
+        text-shadow: -1px -1px 0px black;
+        cursor: pointer;
+      }
+      .player1 {
+        background-color: #ffffff00;
+        color: darkgreen;
+      }
+      .player2 {
+        background-color: #00000000;
+        color: red;
+      }
+      #turnIndicator {
+        margin-top: 10px;
+        font-size: 18px;
+        font-weight: bold;
+      }
+    </style>
+    <title>Oware Nam Nam</title>
+  </head>
+  <body>
+    <h2 id="turnIndicator">Player 1's Turn</h2>
+    <p style="color: #00ff00">
+      Player 1 Captured: <span id="player1Captured">0</span>
+    </p>
+    <p style="color: #ff0000">
+      Player 2 Captured: <span id="player2Captured">0</span>
+    </p>
+    <p>
+      <i>
+        NOTES:
+        <b
+          >Go through the available options based on player turn and the cell
+          classes. Run through each index and determine the number of total
+          seeds captured.</b
+        >Find a way to display it in an easy way. Maybe clicking on the button
+        will create a border for the cell? After that, base it on defensive or
+        "set up" strategy? This might be more difficult.</i
+      >
+    </p>
+    <div id="seedsCount"></div>
+    <table id="owareBoard">
+      <tr>
+        <td class="player1" id="0">4</td>
+        <td class="player1" id="1">4</td>
+        <td class="player1" id="2">4</td>
+        <td class="player1" id="3">4</td>
+        <td class="player1" id="4">4</td>
+        <td class="player1" id="5">4</td>
+        <td class="player1" id="6">4</td>
+      </tr>
+      <tr>
+        <td class="player2" id="7">4</td>
+        <td class="player2" id="8">4</td>
+        <td class="player2" id="9">4</td>
+        <td class="player2" id="10">4</td>
+        <td class="player2" id="11">4</td>
+        <td class="player2" id="12">4</td>
+        <td class="player2" id="13">4</td>
+      </tr>
+    </table>
+    <div id="suggestionContainer"></div>
+
+    <div id="nextRoundButtonContainer"></div>
+
+    <button onclick="resetGame()">Reset Game</button>
+
+    <script>
+      let currentPlayer = 1;
+      let player1Captured = 0;
+      let player2Captured = 0;
+      let seedsToSowCountElement = document.getElementById("seedsCount");
+      const boardState = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
+
+      function playMove(index) {
+        const clickedCell = document.getElementById(index.toString());
+        console.log("clicked index: " + index + "clickedcell: " + clickedCell);
+        // Remove thick-border class from all cells
+        removeThickBorder();
+        // Check the class name of the clicked cell
+        if (
+          (currentPlayer === 1 && !clickedCell.classList.contains("player1")) ||
+          (currentPlayer === 2 && !clickedCell.classList.contains("player2"))
+        ) {
+          console.log("invalid move");
+          alert("Invalid Move! Choose a hole from your side.");
+          return;
+        }
+        let seedsToSow = boardState[index];
+        boardState[index] = 0;
+
+        function sowSeed() {
+          if (seedsToSow > 0) {
+            //        setTimeout(() => {
+            if (index <= 6 && index != 0) {
+              index--;
+            } else if (index === 0) {
+              index = 7;
+            } else if (index === 13) {
+              index = 6;
+            } else {
+              index++;
+            }
+            boardState[index]++;
+            seedsToSow--;
+            console.log(
+              "index: " +
+                index +
+                ", boardState: " +
+                boardState[index] +
+                ", seedsToSow: " +
+                seedsToSow
+            );
+
+            if (seedsToSow === 0 && boardState[index] === 4) {
+              if (currentPlayer === 1) {
+                player1Captured += 4;
+                console.log("!!!Player 1 captured!!!" + index);
+              } else if (currentPlayer === 2) {
+                player2Captured += 4;
+                console.log("!!!Player 2 captured!!!" + index);
+              }
+              boardState[index] = 0;
+              if (index <= 6 && index != 0) {
+                index--;
+              } else if (index === 0) {
+                index = 7;
+              } else if (index === 13) {
+                index = 6;
+              } else {
+                index++;
+              }
+              console.log("keep seeding with: " + boardState[index]);
+              seedsToSow = boardState[index];
+              boardState[index] = 0;
+              updateCapturedCount();
+            } else if (seedsToSow === 0 && boardState[index] > 1) {
+              console.log("keep seeding with: " + boardState[index]);
+              seedsToSow = boardState[index];
+              boardState[index] = 0;
+            }
+            var boardPrint1 = "{";
+            for (let i = 0; i < 7; i++) {
+              boardPrint1 = boardPrint1 + '"' + boardState[i] + '", ';
+            }
+            boardPrint1 = boardPrint1 + "}";
+            console.table(boardPrint1);
+            var boardPrint2 = "{";
+            for (let j = 7; j < 14; j++) {
+              boardPrint2 = boardPrint2 + '"' + boardState[j] + '", ';
+            }
+            boardPrint2 = boardPrint2 + "}";
+            console.table(boardPrint2);
+            updateBoardUI();
+            seedsToSowCountElement.innerText = `Seeds to Sow: ${seedsToSow}`;
+            sowSeed(); // Continue sowing after the delay
+            //          }, 100); // Adjust the delay based on your preference
+          }
+        }
+
+        sowSeed(); // Start the sowing process
+        seedsToSowCountElement.innerText = ""; // Clear the count after sowing is complete
+
+        currentPlayer = currentPlayer === 1 ? 2 : 1;
+        updateBoardUI();
+        checkEndOfRound();
+        updateTurnIndicator();
+        suggestOptimalMove();
+      }
+      function updateCapturedCount() {
+        document.getElementById("player1Captured").innerText = player1Captured;
+        document.getElementById("player2Captured").innerText = player2Captured;
+      }
+
+      function updateTurnIndicator() {
+        const turnIndicator = document.getElementById("turnIndicator");
+        turnIndicator.innerText = `Player ${currentPlayer}'s Turn`;
+        turnIndicator.style.color = currentPlayer === 1 ? "#00ff00" : "#ff0000";
+      }
+
+      function checkEndOfRound() {
+        const player1Hollow = document.querySelectorAll(".player1");
+        const player2Hollow = document.querySelectorAll(".player2");
+
+        const player1HollowSeeds = Array.from(player1Hollow)
+          .map((cell) => parseInt(cell.innerText))
+          .reduce((a, b) => a + b, 0);
+        const player2HollowSeeds = Array.from(player2Hollow)
+          .map((cell) => parseInt(cell.innerText))
+          .reduce((a, b) => a + b, 0);
+
+        if (player1HollowSeeds === 0 || player2HollowSeeds === 0) {
+          showNextRoundButton();
+        }
+      }
+
+      function showNextRoundButton() {
+        const buttonContainer = document.getElementById(
+          "nextRoundButtonContainer"
+        );
+
+        // Check if the button already exists
+        const existingButton = document.getElementById("nextRoundButton");
+        if (existingButton) {
+          return;
+        }
+
+        // Create a button
+        const button = document.createElement("button");
+        button.id = "nextRoundButton";
+        button.innerText = "Start Next Round";
+        button.onclick = function () {
+          endRound();
+          buttonContainer.removeChild(button); // Remove the button once clicked
+        };
+
+        // Append the button to the container
+        buttonContainer.appendChild(button);
+      }
+
+      function endRound() {
+        // Distribute seeds to players' sides
+        for (let i = 0; i < 14; i++) {
+          boardState[i] = 4;
+        }
+        // Calculate the number of hollows won by each player
+        const player1Hollow = document.querySelectorAll(".player1");
+        const player1HollowSeeds = Array.from(player1Hollow)
+          .map((cell) => parseInt(cell.innerText))
+          .reduce((a, b) => a + b, 0);
+        const hallowsWon1 = Math.floor(
+          (player1Captured + player1HollowSeeds) / 4
+        );
+        console.log("Hallows Won1: " + hallowsWon1);
+        // Update the class of each cell based on the number of hollows won
+        for (let i = 0; i < cells.length; i++) {
+          if (i < hallowsWon1) {
+            // Assuming 7 cells per player
+            cells[i].classList.remove("player2");
+            cells[i].classList.add("player1");
+          } else {
+            cells[i].classList.remove("player1");
+            cells[i].classList.add("player2");
+          }
+          updateBoardUI();
+          resetCapturedCount();
+          currentPlayer = 1;
+          updateTurnIndicator();
+        }
+      }
+      function resetCapturedCount() {
+        player1Captured = 0;
+        player2Captured = 0;
+        updateCapturedCount();
+      }
+
+      function resetGame() {
+        currentPlayer = 1;
+        player1Captured = 0;
+        player2Captured = 0;
+
+        // Reset board to initial state
+        for (let i = 0; i < 14; i++) {
+          boardState[i] = 4;
+        }
+        const cells = document.querySelectorAll("#owareBoard td");
+        for (let i = 0; i < boardState.length; i++) {
+          cells[i].innerText = boardState[i];
+
+          // Set classes for the first row (player1)
+          if (i < 7) {
+            cells[i].className = "player1";
+          } else {
+            // Set classes for the second row (player2)
+            cells[i].className = "player2";
+          }
+        }
+        updateBoardUI();
+        updateCapturedCount();
+        updateTurnIndicator();
+      }
+      function suggestOptimalMove() {
+        // Get playable cells
+        const playableCells = [];
+        cells.forEach((cell, index) => {
+          if (boardState[index] != 0 && isCurrentPlayerTurn(cell)) {
+            playableCells.push(index);
+          }
+        });
+        console.log("Playable Cells: " + playableCells);
+        let playerHint = [];
+
+        // Iterate through playable cells
+        for (let i = 0; i < playableCells.length; i++) {
+          let xplayer1Captured = 0;
+          let xplayer2Captured = 0;
+          let xboardState = boardState.slice();
+
+          let xindex = playableCells[i];
+          let xseedsToSow = xboardState[xindex];
+          xboardState[xindex] = 0;
+
+          // Define the xsowSeed function for each move
+          function xsowSeed() {
+            if (xseedsToSow > 0) {
+              if (xindex <= 6 && xindex != 0) {
+                xindex--;
+              } else if (xindex === 0) {
+                xindex = 7;
+              } else if (xindex === 13) {
+                xindex = 6;
+              } else {
+                xindex++;
+              }
+              xboardState[xindex]++;
+              xseedsToSow--;
+
+              if (xseedsToSow === 0 && xboardState[xindex] === 4) {
+                if (currentPlayer === 1) {
+                  xplayer1Captured += 4;
+                } else if (currentPlayer === 2) {
+                  xplayer2Captured += 4;
+                }
+                xboardState[xindex] = 0;
+                if (xindex <= 6 && xindex != 0) {
+                  xindex--;
+                } else if (xindex === 0) {
+                  xindex = 7;
+                } else if (xindex === 13) {
+                  xindex = 6;
+                } else {
+                  xindex++;
+                }
+                xseedsToSow = xboardState[xindex];
+                xboardState[xindex] = 0;
+              } else if (xseedsToSow === 0 && xboardState[xindex] > 1) {
+                xseedsToSow = xboardState[xindex];
+                xboardState[xindex] = 0;
+              }
+              xsowSeed();
+            }
+          }
+
+          // Call the xsowSeed function for the current move
+          xsowSeed();
+          let xPlayerCaptured;
+          // Log the captures for each move
+          if (currentPlayer === 1) {
+            xPlayerCaptured = xplayer1Captured;
+          } else if (currentPlayer === 2) {
+            xPlayerCaptured = xplayer2Captured;
+          }
+          playerHint.push({
+            zindex: playableCells[i],
+            captured: xPlayerCaptured,
+          });
+          console.log(
+            "I:" +
+              playableCells[i] +
+              ", 1:" +
+              xplayer1Captured +
+              ", 2:" +
+              xplayer2Captured
+          );
+        }
+        // Function to find indexes with the largest number
+        function findIndexesWithLargestNumber(arr) {
+          let maxNumber = -Infinity;
+          let indexes = [];
+          console.log("findIndexesWithLargestNumber ran");
+          // Iterate through the array
+          arr.forEach((element) => {
+            // Update maxNumber and reset indexes if a larger number is found
+            if (element.captured > maxNumber && element.captured > 0) {
+              maxNumber = element.captured;
+              indexes = [element.zindex];
+            } else if (element.captured === maxNumber) {
+              // If equal to maxNumber, add the index to the list
+              indexes.push(element.zindex);
+            }
+          });
+
+          return indexes;
+        }
+        console.table(playerHint);
+        // Call the function and get the result
+        let result = findIndexesWithLargestNumber(playerHint);
+
+        // Output the result
+        console.log(result); // Output: [1, 2, 4]
+        for (let j = 0; j < result.length; j++) {
+          addThickBorderToCell(result[j]);
+        }
+      }
+      function addThickBorderToCell(zindex) {
+        const cell = document.getElementById(zindex.toString());
+        if (cell) {
+          cell.classList.add("thick-border");
+        }
+      }
+      function removeThickBorder() {
+        // Get all cells
+        const cells = document.querySelectorAll("#owareBoard td");
+
+        // Remove the thick-border class from each cell
+        cells.forEach((cell) => {
+          cell.classList.remove("thick-border");
+        });
+      }
+
+      function updateBoardUI() {
+        const cells = document.querySelectorAll("#owareBoard td");
+        for (let i = 0; i < boardState.length; i++) {
+          cells[i].innerText = boardState[i];
+        }
+      }
+      // Attach click event to each cell
+      const cells = document.querySelectorAll("#owareBoard td");
+      let isAnimating = false; // Flag to check if animation is in progress
+
+      // Modify the click event listener to use the suggested move and display it
+      cells.forEach((cell, index) => {
+        cell.addEventListener("click", () => {
+          if (
+            isAnimating ||
+            boardState[index] === 0 ||
+            !isCurrentPlayerTurn(cell)
+          ) {
+            return; // Ignore clicks during animation or on empty holes or wrong player's turn
+          }
+
+          // Check if it's the player's turn
+          playMove(index);
+
+          // Suggest the optimal move for the next turn
+          //  const optimalMove = suggestOptimalMove();
+
+          // Display the suggestion
+          /*   const suggestionContainer = document.getElementById(
+                  "suggestionContainer"
+                );
+                suggestionContainer.innerText = `Player ${currentPlayer} suggested move: ${optimalMove}`;
+             */
+        });
+      });
+
+      function isCurrentPlayerTurn(clickedCell) {
+        // Check if it's the turn of the player to whom the hole belongs
+        return (
+          (currentPlayer === 1 && clickedCell.classList.contains("player1")) ||
+          (currentPlayer === 2 && clickedCell.classList.contains("player2"))
+        );
+      }
+    </script>
+  </body>
+</html>
